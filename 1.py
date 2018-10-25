@@ -13,22 +13,27 @@ class Agent:
 
 class Env:
     def __init__(self):
-        env1 = 0
+        self.env1 = [["a1","f1"],["a2","f2"]]
+        self.env2 = [["a1","f2"],["a2","f1"]]
 
-    def feedback(self):
-        function1 = "f1"
-        function2 = "f2"
+    def feedback(self,env,action):
+        if env == self.env1:
+            if action == "a1":
+                return "f1"
+            if action == "a2":
+                return "f2"
+        if env == self.env2:
+            if action == "a1":
+                return "f2"
+            if action == "a2":
+                return "f1"
 
-def feedback(action):
-    if action == "a1":
-        return "f1"
-    if action == "a2":
-        return "f2"
 
 if __name__ == '__main__':
 
     n = 10
     agent = Agent()
+    env = Env()
 
     for i in range(n):
 
@@ -39,12 +44,12 @@ if __name__ == '__main__':
 
 
         print("Action est : ",actions)
-        f1 = feedback(actions)
+        f1 = env.feedback(env.env1, actions)
         print("Feedback obtenu : ", f1)
         if predict == f1:
-            print("YOUUUHOUUUU !")
+            print("Je suis content !")
         else:
-            print("Mais euuuuuh :(")
+            print("Hmm... Ca ne va pas du tout !")
             if not predict == None:
                 agent.ListFeed.remove([actions,predict])
             agent.ListFeed.append([actions,f1])
