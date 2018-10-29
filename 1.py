@@ -2,14 +2,40 @@ import numpy as np
 
 
 class Agent:
-    ListFeed = []
+
     def __init__(self):
         self.actions = ["a1","a2"]
-    def predict(self,actions):
+        self.ListFeed = []
+        self.prediction = None
+
+
+    def predict(self,actions) :
         for i in self.ListFeed:
             if actions in i:
                 return i[1]
         return None
+
+
+    def play(self) :
+        self.action = self.actions[0]
+        print("Agent choisi une action : ",self.action)
+        self.prediction = self.predict(self.action)
+        print("L'agent prédit : ",self.prediction)
+
+
+    def update(self, feedback) :
+        print("Feedback obtenu : ", feedback)
+        if self.prediction == feedback:
+            print("Je suis content !")
+        else:
+            print("Hmm... Ca ne va pas du tout !")
+            if not self.prediction == None:
+                self.ListFeed.remove([self.action,self.prediction])
+            self.ListFeed.append([self.action,feedback])
+        print("")
+
+
+
 
 class Env:
     def __init__(self):
@@ -36,21 +62,6 @@ if __name__ == '__main__':
     env = Env()
 
     for i in range(n):
-
-        actions = agent.actions[0]
-        print("Agent choisi une action : ",actions)
-        predict = agent.predict(actions)
-        print("L'agent prédit : ",predict)
-
-
-        print("Action est : ",actions)
-        f1 = env.feedback(env.env1, actions)
-        print("Feedback obtenu : ", f1)
-        if predict == f1:
-            print("Je suis content !")
-        else:
-            print("Hmm... Ca ne va pas du tout !")
-            if not predict == None:
-                agent.ListFeed.remove([actions,predict])
-            agent.ListFeed.append([actions,f1])
-        print("")
+        agent.play()
+        f1 = env.feedback(env.env1, agent.action)
+        agent.update(f1)
