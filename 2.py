@@ -6,8 +6,11 @@ class Agent:
     def __init__(self):
         self.actions = ["a1","a2"]
         self.ListFeed = []
+        self.ListCouple = []
+        self.value = None
         self.prediction = None
         self.action = None
+        self.valAction = 0
 
 
     def predict(self,actions) :
@@ -18,23 +21,44 @@ class Agent:
 
 
     def play(self):
-        self.action = self.actions[0]
+        self.action = self.actions[self.valAction]
         print("Agent choisi une action : ",self.action)
         self.prediction = self.predict(self.action)
         print("L'agent prédit : ",self.prediction)
         return self.action
 
     def update(self, feedback):
-        value = val.get_value(a, feedback)
+        self.value = val.get_value(a, feedback)
         print("Feedback obtenu : ", feedback)
-        print("Valeur obtenu : ",value)
-        if self.prediction == feedback and value > 0:
-            print("Je suis content !")
+        print("Valeur obtenu : ",self.value)
+        if self.prediction == feedback:
+            print("Je suis content car j'ai bien prédit !")
+
+            if self.value > 0:
+                print("Positif parfait !")
+                varCouple = (self.action + feedback, self.value)
+                if varCouple not in self.ListCouple:
+                    self.ListCouple.append(varCouple)
+            else:
+                print("Mince, c'est négatif :(")
+                self.valAction += 1 % 2
         else:
-            print("Hmm... Ca ne va pas du tout !")
+            print("Hmm... Ca ne va pas du tout je n'ai pas bien prédit mon feedback !")
             if not self.prediction == None:
-                self.ListFeed.remove([self.action,self.prediction,value])
-            self.ListFeed.append([self.action,feedback,value])
+                self.ListFeed.remove([self.action,self.prediction])
+            self.ListFeed.append([self.action,feedback])
+            if self.value > 0:
+                print("Positif parfait !")
+                varCouple = (self.action + feedback, self.value)
+                if varCouple not in self.ListCouple:
+                    self.ListCouple.append(varCouple)
+            else:
+                print("Mince, c'est négatif :(")
+                self.valAction += 1 % 2
+                varCouple = (self.action + feedback, self.value)
+                if varCouple not in self.ListCouple:
+                    self.ListCouple.append(varCouple)
+        print("COUPLE",self.ListCouple)
         print(self.ListFeed)
         print("")
 
@@ -43,23 +67,38 @@ class Agent:
 
 class Env:
     def __init__(self, env):
-        if env == 1:
-            self.env1 = [["a1","f1"],["a2","f2"]]
-        if env == 2:
-            self.env2 = [["a1","f2"],["a2","f1"]]
+
+        self.env1 = {"a1":"f1","a2":"f2"}
+        self.env2 = {"a1":"f2","a2":"f1"}
         self.env = env
+        self.nbPas = 0
+        self.actionPrecedente = None
 
     def feedback(self, action):
         if self.env == 1:
-            if action == "a1":
-                return "f1"
-            if action == "a2":
-                return "f2"
+            return self.env1.get(action)
         if self.env == 2:
-            if action == "a1":
-                return "f2"
-            if action == "a2":
+            return self.env2.get(action)
+        if self.env == 3:
+            if self.nbPas < 5:
+                self.nbPas += 1
+                return self.env1.get(action)
+            else:
+                return self.env2.get(action)
+        if self.env == 4:
+            if self.actionPrecedente is not None:
+                if self.actionPrecedente != action :
+                    self.actionPrecedente = action
+                    return "f2"
+                else:
+                    self.actionPrecedente = action
+                    return "f1"
+            else:
+                self.actionPrecedente = action
                 return "f1"
+
+
+
 
 class Values:
     def __init__(self,val):
@@ -88,9 +127,10 @@ if __name__ == '__main__':
 
     n = 10
     agent = Agent()
-    env = Env(1)
+    env = Env(3)
     val = Values(3)
     for i in range(n):
-            a = agent.play()
-            f1 = env.feedback(agent.action)
-            agent.update(f1)
+        a = agent.play()
+        f1 = env.feedback(agent.action)
+        agent.update(f1)
+
