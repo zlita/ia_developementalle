@@ -59,8 +59,8 @@ if __name__ == '__main__':
     n = 10
     agent = Agent()
     env = Env()
-
     for i in range(n):
         agent.play()
-        f1 = env.feedback(env.env1, agent.action)
+        f1 = env.feedback(env.env2, agent.action)
         agent.update(f1)
+        print("Action ",i+1, ";",agent.action,";", f1, ";", agent.prediction)
