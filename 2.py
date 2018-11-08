@@ -41,7 +41,7 @@ class Agent:
                     self.ListCouple.append(varCouple)
             else:
                 print("Mince, c'est négatif :(")
-                self.valAction += 1 % 2
+                self.valAction = (self.valAction + 1) % 2
         else:
             print("Hmm... Ca ne va pas du tout je n'ai pas bien prédit mon feedback !")
             if not self.prediction == None:
@@ -54,7 +54,7 @@ class Agent:
                     self.ListCouple.append(varCouple)
             else:
                 print("Mince, c'est négatif :(")
-                self.valAction += 1 % 2
+                self.valAction = (self.valAction + 1) % 2
                 varCouple = (self.action + feedback, self.value)
                 if varCouple not in self.ListCouple:
                     self.ListCouple.append(varCouple)
@@ -133,4 +133,3 @@ if __name__ == '__main__':
         a = agent.play()
         f1 = env.feedback(agent.action)
         agent.update(f1)
-
