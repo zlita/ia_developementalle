@@ -130,4 +130,3 @@ if __name__ == '__main__':
         f1 = env.feedback(agent.action)
         agent.update(f1)
         print("Action",i+1,a,f1,agent.value)
-
