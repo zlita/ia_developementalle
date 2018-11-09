@@ -6,26 +6,41 @@ class Agent:
     def __init__(self):
         self.actions = ["a1","a2"]
         self.ListFeed = []
-        self.ListCouple = [['None',-1],['None',-1]]
-        self.AllCouple = {}
+        self.ListCouple = []
         self.value = None
         self.prediction = None
         self.action = None
         self.valAction = 0
+        self.interactions_composite = []
+        self.interaction_courante = []
+        self.value_composite = 0
 
 
-    def predict(self, actions):
+    def predict(self,actions) :
         for i in self.ListFeed:
             if actions in i:
                 return i[1]
         return None
 
+
     def play(self):
-        self.action = self.actions[self.valAction]
+        temp = self.activate_composite()
+        update = False
+
+        while temp != [] :
+            if min(temp, key=lambda coll: len(coll))[-1] > 0 :     #si la valeur de l'interaction composite activé restante la plus petite est positive on poursuit son execution
+                self.action = min(temp, key=lambda coll: len(coll))[1]
+                update = True
+                temp = []
+            else :  #sinon on la supprime de temp pour tester les suivantes.
+                del(temp[temp.index(min(temp, key=lambda coll: len(coll)))])    #revient a prendre la premiere interaction car elles sont toutes composé de 2 actions mais le code est générique.
+        if not update :     #si on as pas d'interaction composite activé dont la valeur est positive.
+            self.action = self.actions[self.valAction]
         print("Agent choisi une action : ",self.action)
         self.prediction = self.predict(self.action)
         print("L'agent prédit : ",self.prediction)
         return self.action
+
 
     def update(self, feedback):
         self.value = val.get_value(a, feedback)
@@ -41,7 +56,7 @@ class Agent:
                     self.ListCouple.append(varCouple)
             else:
                 print("Mince, c'est négatif :(")
-                self.valAction += 1 % 2
+                self.valAction = (self.valAction + 1) % 2
         else:
             print("Hmm... Ca ne va pas du tout je n'ai pas bien prédit mon feedback !")
             if not self.prediction == None:
@@ -58,52 +73,27 @@ class Agent:
                 varCouple = (self.action + feedback, self.value)
                 if varCouple not in self.ListCouple:
                     self.ListCouple.append(varCouple)
-        print("COUPLE",self.ListCouple)
-        print(self.ListFeed)
-        print("")
-##################################################################################
+        #print("COUPLE",self.ListCouple)
+        #print(self.ListFeed)
+        #print("")
 
-    def agent_action(self):
+        #mis a jour des interactions.
+        self.interaction_courante.append(self.action)
+        self.value_composite += self.value
+        if self.interaction_courante not in self.interactions_composite and len(self.interaction_courante) == 2 :   # remplacer le == par >= pour permettre des actions composite de taille arbitraire.
+            self.interaction_courante.append(self.value_composite)
+            self.interactions_composite.append(self.interaction_courante)
+            self.value_composite = 0
+            self.interaction_courante = [self.action]
 
-        self.action = self.actions[self.valAction]
-        return self.action
 
-    def agent_predict(self):
-        self.prediction
-
-    def agent_valeur(self,feedback):
-        #self.value = val.get_value(self.action,feedback)
-        #if len(self.ListCouple) < 2:
-        #    self.ListCouple.append([self.action+feedback,self.value])
-        #else:
-        self.ListCouple.pop(0)
-        self.ListCouple.append([self.action,feedback])
-        print("ListeCOUPLE :",self.ListCouple)
-
+    #retourne la ou les actions composite activé si il y en as.
     def activate_composite(self):
-        A = self.AllCouple.get(self.action)
-        print("All couple starting with action",self.AllCouple.get(self.action))
-        print("Activate composite",A)
+        A = []
+        for i in self.interactions_composite :
+            if i[0] == self.action :
+                A.append(i)
         return A
-
-    def interaction_set(self):
-        couple = (self.ListCouple[0][0]+self.ListCouple[1][0])
-        if couple not in self.AllCouple:
-            self.AllCouple[couple] = f1
-
-    def agent_maj(self,feedback):
-
-        self.agent_valeur(feedback)
-        self.interaction_set()
-        A = self.activate_composite()
-        print(self.ListCouple)
-        if self.ListCouple[0][1] + self.ListCouple[1][1] < 0:
-            self.valAction = (self.valAction + 1) % 2
-
-
-#############################################################################
-
-
 
 
 class Env:
@@ -114,6 +104,7 @@ class Env:
         self.env = env
         self.nbPas = 0
         self.actionPrecedente = None
+
 
     def feedback(self, action):
         if self.env == 1:
@@ -147,6 +138,7 @@ class Values:
             self.val3 = {"a1f1":-1,"a2f1":-1,"a1f2":1,"a2f2":1}
         self.val = val
 
+
     def get_value(self,action,feedback):
         temp = action + feedback
         if self.val == 1:
@@ -163,10 +155,11 @@ if __name__ == '__main__':
 
     n = 10
     agent = Agent()
-    env = Env(4)
-    val = Values(3)
+    env = Env(3)
+    val = Values(2)
     for i in range(n):
-        a = agent.agent_action()
-        f1 = env.feedback(a)
-        agent.agent_maj(f1)
-
+        a = agent.play()
+        f1 = env.feedback(agent.action)
+        agent.update(f1)
+        print("Action",i+1,a,f1,agent.value)
+        print("\n\n")
